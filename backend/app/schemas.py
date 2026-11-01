@@ -48,6 +48,7 @@ class CategoryOut(BaseModel):
 
 class ExpenseBase(BaseModel):
     amount: float = Field(gt=0)
+    currency: str = "USD"
     description: Optional[str] = None
     category_id: Optional[int] = None
     date: Optional[datetime] = None
@@ -59,6 +60,7 @@ class ExpenseCreate(ExpenseBase):
 
 class ExpenseUpdate(BaseModel):
     amount: Optional[float] = Field(default=None, gt=0)
+    currency: Optional[str] = None
     description: Optional[str] = None
     category_id: Optional[int] = None
     date: Optional[datetime] = None
@@ -69,6 +71,7 @@ class ExpenseOut(BaseModel):
     id: int
     user_id: int
     amount: float
+    currency: str = "USD"
     description: Optional[str] = None
     category_id: Optional[int] = None
     date: datetime
@@ -106,12 +109,22 @@ class BudgetOut(BaseModel):
 
 class IncomeBase(BaseModel):
     amount: float = Field(gt=0)
+    currency: str = "USD"
     source: Optional[str] = None
     date: Optional[datetime] = None
+    notes: Optional[str] = None
 
 
 class IncomeCreate(IncomeBase):
     pass
+
+
+class IncomeUpdate(BaseModel):
+    amount: Optional[float] = Field(default=None, gt=0)
+    currency: Optional[str] = None
+    source: Optional[str] = None
+    date: Optional[datetime] = None
+    notes: Optional[str] = None
 
 
 class IncomeOut(BaseModel):
@@ -119,6 +132,66 @@ class IncomeOut(BaseModel):
     id: int
     user_id: int
     amount: float
+    currency: str = "USD"
     source: Optional[str] = None
     date: datetime
+    notes: Optional[str] = None
     created_at: datetime
+
+
+class RecurringExpenseBase(BaseModel):
+    amount: float = Field(gt=0)
+    currency: str = "USD"
+    description: Optional[str] = None
+    category_id: Optional[int] = None
+    frequency: str = "monthly"
+    next_run: Optional[datetime] = None
+    active: bool = True
+
+
+class RecurringExpenseCreate(RecurringExpenseBase):
+    pass
+
+
+class RecurringExpenseUpdate(BaseModel):
+    amount: Optional[float] = Field(default=None, gt=0)
+    currency: Optional[str] = None
+    description: Optional[str] = None
+    category_id: Optional[int] = None
+    frequency: Optional[str] = None
+    next_run: Optional[datetime] = None
+    active: Optional[bool] = None
+
+
+class RecurringExpenseOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: int
+    user_id: int
+    amount: float
+    currency: str = "USD"
+    description: Optional[str] = None
+    category_id: Optional[int] = None
+    frequency: str
+    next_run: datetime
+    active: bool
+    created_at: datetime
+
+
+class CurrencyBase(BaseModel):
+    code: str
+    rate: float = Field(gt=0)
+
+
+class CurrencyCreate(CurrencyBase):
+    pass
+
+
+class CurrencyUpdate(BaseModel):
+    rate: float = Field(gt=0)
+
+
+class CurrencyOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    code: str
+    rate: float
+    updated_at: datetime

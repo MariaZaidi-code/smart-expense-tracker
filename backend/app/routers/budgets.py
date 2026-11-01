@@ -12,6 +12,26 @@ from app.schemas import BudgetCreate, BudgetOut, BudgetUpdate
 router = APIRouter(prefix="/budgets", tags=["budgets"])
 
 
+@router.get("/status")
+def budgets_status(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    budgets = db.query(Budget).filter(Budget.user_id == current_user.id).all()
+    result = []
+    for budget in budgets:
+        q = db.query(func.coalesce(func.sum(Expense.amount), 0.0)).filter(Expense.user_id == current_user.id)
+        if budget.category_id is not None:
+            q = q.filter(Expense.category_id == budget.category_id)
+        spent = q.scalar() or 0.0
+        percent_used = (spent / budget.amount * 100.0) if budget.amount else 0.0
+        result.append({
+            "budget_id": budget.id,
+            "limit": budget.amount,
+            "spent": spent,
+            "percent_used": percent_used,
+            "alert": percent_used >= 80.0,
+        })
+    return result
+
+
 @router.get("", response_model=list[BudgetOut])
 def list_budgets(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     return db.query(Budget).filter(Budget.user_id == current_user.id).all()

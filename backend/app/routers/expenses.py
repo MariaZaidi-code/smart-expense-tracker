@@ -4,8 +4,9 @@ from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
+from app.ai import categorize
 from app.deps import get_current_user, get_db
-from app.models import Expense, User
+from app.models import Category, Expense, User
 from app.schemas import ExpenseCreate, ExpenseOut, ExpenseUpdate
 
 router = APIRouter(prefix="/expenses", tags=["expenses"])
@@ -40,11 +41,25 @@ def list_expenses(
 
 @router.post("", response_model=ExpenseOut, status_code=201)
 def create_expense(payload: ExpenseCreate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    category_id = payload.category_id
+    if category_id is None:
+        cat_name = categorize(payload.description, payload.amount)
+        cat = db.query(Category).filter(
+            Category.name == cat_name,
+            (Category.user_id == current_user.id) | (Category.is_default == True),  # noqa: E712
+        ).first()
+        if cat is None:
+            cat = Category(name=cat_name, type="expense", user_id=current_user.id)
+            db.add(cat)
+            db.commit()
+            db.refresh(cat)
+        category_id = cat.id
     expense = Expense(
         user_id=current_user.id,
         amount=payload.amount,
+        currency=payload.currency or "USD",
         description=payload.description,
-        category_id=payload.category_id,
+        category_id=category_id,
         date=payload.date or datetime.utcnow(),
     )
     db.add(expense)
@@ -68,6 +83,8 @@ def update_expense(expense_id: int, payload: ExpenseUpdate, db: Session = Depend
         raise HTTPException(status_code=404, detail="Expense not found")
     if payload.amount is not None:
         expense.amount = payload.amount
+    if payload.currency is not None:
+        expense.currency = payload.currency
     if payload.description is not None:
         expense.description = payload.description
     if payload.category_id is not None:

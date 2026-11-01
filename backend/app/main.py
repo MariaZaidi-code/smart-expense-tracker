@@ -4,8 +4,8 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.db import Base, engine, init_db
-from app.models import Category
-from app.routers import auth, budgets, categories, expenses, reports
+from app.models import Category, Currency
+from app.routers import ai, auth, budgets, categories, currencies, expenses, export, income, incomes, recurring, reports
 
 DEFAULT_CATEGORIES = [
     ("Food", "expense"),
@@ -35,6 +35,9 @@ def seed_categories():
             for name, ctype in DEFAULT_CATEGORIES:
                 db.add(Category(name=name, type=ctype, is_default=True, user_id=None))
             db.commit()
+        if db.query(Currency).filter(Currency.code == "USD").first() is None:
+            db.add(Currency(code="USD", rate=1.0))
+            db.commit()
     finally:
         db.close()
 
@@ -57,10 +60,17 @@ app.add_middleware(
 )
 
 app.include_router(auth.router)
+app.include_router(ai.router)
 app.include_router(categories.router)
 app.include_router(expenses.router)
+app.include_router(incomes.router)
+app.include_router(income.router, prefix="/income")
 app.include_router(budgets.router)
+app.include_router(recurring.router, prefix="/recurring")
+app.include_router(recurring.router, prefix="/recurring-expenses")
 app.include_router(reports.router)
+app.include_router(currencies.router)
+app.include_router(export.router)
 
 
 @app.get("/health")

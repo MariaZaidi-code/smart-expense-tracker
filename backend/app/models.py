@@ -19,6 +19,7 @@ class User(Base):
     categories = relationship("Category", back_populates="owner", cascade="all, delete-orphan")
     budgets = relationship("Budget", back_populates="owner", cascade="all, delete-orphan")
     incomes = relationship("Income", back_populates="owner", cascade="all, delete-orphan")
+    recurring_expenses = relationship("RecurringExpense", back_populates="owner", cascade="all, delete-orphan")
 
 
 class Category(Base):
@@ -39,6 +40,7 @@ class Expense(Base):
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     amount = Column(Float, nullable=False)
+    currency = Column(String, default="USD", nullable=False)
     description = Column(String, nullable=True)
     category_id = Column(Integer, ForeignKey("categories.id"), nullable=True)
     date = Column(DateTime, default=datetime.utcnow)
@@ -69,8 +71,37 @@ class Income(Base):
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     amount = Column(Float, nullable=False)
+    currency = Column(String, default="USD", nullable=False)
     source = Column(String, nullable=True)
     date = Column(DateTime, default=datetime.utcnow)
+    notes = Column(String, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
 
     owner = relationship("User", back_populates="incomes")
+
+
+class RecurringExpense(Base):
+    __tablename__ = "recurring_expenses"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    amount = Column(Float, nullable=False)
+    currency = Column(String, default="USD", nullable=False)
+    description = Column(String, nullable=True)
+    category_id = Column(Integer, ForeignKey("categories.id"), nullable=True)
+    frequency = Column(String, nullable=False, default="monthly")
+    next_run = Column(DateTime, default=datetime.utcnow)
+    active = Column(Boolean, default=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    owner = relationship("User", back_populates="recurring_expenses")
+    category = relationship("Category")
+
+
+class Currency(Base):
+    __tablename__ = "currencies"
+
+    code = Column(String, primary_key=True)
+    rate = Column(Float, nullable=False, default=1.0)
+    updated_at = Column(DateTime, default=datetime.utcnow)
+

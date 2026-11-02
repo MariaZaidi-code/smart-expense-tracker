@@ -172,6 +172,13 @@ rows = list_transactions(
 
 st.markdown(f"#### {len(rows)} transaction{'s' if len(rows) != 1 else ''}")
 if rows:
+    import csv, io
+    buffer = io.StringIO()
+    writer = csv.writer(buffer)
+    writer.writerow(["Description", "Category", "Date", "Payment", "Amount"])
+    for row in rows:
+        writer.writerow([row["description"], row["category"], row["transaction_date"], row["payment_method"], row["amount"]])
+    st.download_button("Download CSV", data=buffer.getvalue(), file_name="transactions.csv", mime="text/csv")
     st.dataframe(
         [
             {

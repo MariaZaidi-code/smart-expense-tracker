@@ -62,11 +62,17 @@ def _decorate(row: dict, today: date | None = None) -> dict:
     }
 
 
-def list_goals(db_path: str | Path | None = None) -> list[dict]:
+def list_goals(db_path: str | Path | None = None, user_id: int | None = None) -> list[dict]:
     with get_connection(db_path) as connection:
-        rows = connection.execute(
-            "SELECT * FROM goals ORDER BY target_date IS NULL, target_date, id"
-        ).fetchall()
+        if user_id is None:
+            rows = connection.execute(
+                "SELECT * FROM goals ORDER BY target_date IS NULL, target_date, id"
+            ).fetchall()
+        else:
+            rows = connection.execute(
+                "SELECT * FROM goals WHERE user_id = ? OR user_id IS NULL ORDER BY target_date IS NULL, target_date, id",
+                (user_id,),
+            ).fetchall()
     return [_decorate(dict(row)) for row in rows]
 
 
@@ -83,6 +89,7 @@ def create_goal(
     target_date: str | None = None,
     category: str = "general",
     db_path: str | Path | None = None,
+    user_id: int | None = None,
 ) -> int:
     name = (name or "").strip()
     if not name:
@@ -99,8 +106,8 @@ def create_goal(
     with get_connection(db_path) as connection:
         cursor = connection.execute(
             """
-            INSERT INTO goals(name, target_amount, saved_amount, target_date, category)
-            VALUES (?, ?, ?, ?, ?)
+            INSERT INTO goals(name, target_amount, saved_amount, target_date, category, user_id)
+            VALUES (?, ?, ?, ?, ?, ?)
             ON CONFLICT(name) DO UPDATE SET
                 target_amount = excluded.target_amount,
                 saved_amount = excluded.saved_amount,
@@ -108,7 +115,7 @@ def create_goal(
                 category = excluded.category,
                 updated_at = CURRENT_TIMESTAMP
             """,
-            (name, float(target_amount), float(saved_amount), target_date, category),
+            (name, float(target_amount), float(saved_amount), target_date, category, user_id),
         )
         row = connection.execute(
             "SELECT id FROM goals WHERE name = ?", (name,)
@@ -116,7 +123,7 @@ def create_goal(
     return int(row["id"]) if row else int(cursor.lastrowid or 0)
 
 
-def add_to_goal(goal_id: int, amount: float, db_path: str | Path | None = None) -> dict:
+def add_to_goal(goal_id: int, amount: float, db_path: str | Path | None = None, user_id: int | None = None) -> dict:
     if float(amount) <= 0:
         raise ValueError("Contribution must be greater than zero.")
     with get_connection(db_path) as connection:
@@ -134,16 +141,22 @@ def add_to_goal(goal_id: int, amount: float, db_path: str | Path | None = None) 
     return _decorate(dict(row))
 
 
-def delete_goal(goal_id: int, db_path: str | Path | None = None) -> bool:
+def delete_goal(goal_id: int, db_path: str | Path | None = None, user_id: int | None = None) -> bool:
     with get_connection(db_path) as connection:
-        cursor = connection.execute("DELETE FROM goals WHERE id = ?", (goal_id,))
+        if user_id is None:
+            cursor = connection.execute("DELETE FROM goals WHERE id = ?", (goal_id,))
+        else:
+            cursor = connection.execute(
+                "DELETE FROM goals WHERE id = ? AND (user_id = ? OR user_id IS NULL)",
+                (goal_id, user_id),
+            )
         if cursor.rowcount == 0:
             raise ValueError("Goal not found.")
     return True
 
 
-def goal_summary(db_path: str | Path | None = None) -> dict:
-    goals = list_goals(db_path)
+def goal_summary(db_path: str | Path | None = None, user_id: int | None = None) -> dict:
+    goals = list_goals(db_path, user_id=user_id)
     total_target = sum(goal["target_amount"] for goal in goals)
     total_saved = sum(goal["saved_amount"] for goal in goals)
     return {

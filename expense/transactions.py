@@ -69,6 +69,7 @@ def list_transactions(
     month: str | None = None,
     sort: str = "newest",
     limit: int | None = None,
+    user_id: int | None = None,
 ) -> list[dict]:
     clauses, params = [], []
     if search:
@@ -93,6 +94,9 @@ def list_transactions(
     if max_amount is not None:
         clauses.append("t.amount <= ?")
         params.append(max_amount)
+    if user_id is not None:
+        clauses.append("t.user_id = ?")
+        params.append(user_id)
 
     order = {
         "newest": "t.transaction_date DESC, t.id DESC",
@@ -103,7 +107,7 @@ def list_transactions(
     where = f"WHERE {' AND '.join(clauses)}" if clauses else ""
     query = f"""
         SELECT t.id, t.description, t.amount, c.name AS category,
-               t.transaction_date, t.payment_method, t.notes
+               t.transaction_date, t.payment_method, t.notes, t.tags
         FROM transactions t
         JOIN categories c ON c.id = t.category_id
         {where}
@@ -117,18 +121,18 @@ def list_transactions(
 
 
 def get_transaction(
-    transaction_id: int, db_path: str | Path | None = None
+    transaction_id: int, db_path: str | Path | None = None, user_id: int | None = None
 ) -> dict | None:
     with get_connection(db_path) as connection:
         row = connection.execute(
             """
             SELECT t.id, t.description, t.amount, c.name AS category,
-                   t.transaction_date, t.payment_method, t.notes
+                   t.transaction_date, t.payment_method, t.notes, t.tags, t.user_id
             FROM transactions t
             JOIN categories c ON c.id = t.category_id
-            WHERE t.id = ?
+            WHERE t.id = ? AND (? IS NULL OR t.user_id = ?)
             """,
-            (transaction_id,),
+            (transaction_id, user_id, user_id),
         ).fetchone()
         return dict(row) if row else None
 
@@ -140,7 +144,9 @@ def add_transaction(
     transaction_date: str,
     payment_method: str = "Card",
     notes: str = "",
+    tags: str = "",
     db_path: str | Path | None = None,
+    user_id: int | None = None,
 ) -> int:
     _validate(description, amount, category, transaction_date)
     with get_connection(db_path) as connection:
@@ -152,8 +158,8 @@ def add_transaction(
         cursor = connection.execute(
             """
             INSERT INTO transactions
-                (description, amount, category_id, transaction_date, payment_method, notes)
-            VALUES (?, ?, ?, ?, ?, ?)
+                (description, amount, category_id, transaction_date, payment_method, notes, tags, user_id)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 description.strip(),
@@ -162,6 +168,8 @@ def add_transaction(
                 transaction_date,
                 payment_method,
                 notes.strip(),
+                tags.strip(),
+                user_id,
             ),
         )
         transaction_id = int(cursor.lastrowid)

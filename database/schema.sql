@@ -4,6 +4,14 @@
 
 PRAGMA foreign_keys = ON;
 
+CREATE TABLE IF NOT EXISTS users (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    username TEXT NOT NULL UNIQUE,
+    password_hash TEXT NOT NULL,
+    display_name TEXT NOT NULL DEFAULT '',
+    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
 CREATE TABLE IF NOT EXISTS categories (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT NOT NULL UNIQUE,
@@ -18,8 +26,11 @@ CREATE TABLE IF NOT EXISTS transactions (
     transaction_date TEXT NOT NULL,
     payment_method TEXT NOT NULL DEFAULT 'Card',
     notes TEXT NOT NULL DEFAULT '',
+    tags TEXT NOT NULL DEFAULT '',
+    user_id INTEGER,
     created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE RESTRICT
+    FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE RESTRICT,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS budgets (
@@ -27,10 +38,12 @@ CREATE TABLE IF NOT EXISTS budgets (
     month TEXT NOT NULL,
     category_id INTEGER,
     amount REAL NOT NULL CHECK (amount > 0),
+    user_id INTEGER,
     created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE CASCADE,
-    UNIQUE (month, category_id)
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    UNIQUE (month, category_id, user_id)
 );
 
 CREATE UNIQUE INDEX IF NOT EXISTS idx_monthly_budget
@@ -97,8 +110,10 @@ CREATE TABLE IF NOT EXISTS goals (
     saved_amount REAL NOT NULL DEFAULT 0 CHECK (saved_amount >= 0),
     target_date TEXT,
     category TEXT NOT NULL DEFAULT 'general',
+    user_id INTEGER,
     created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+    updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
 -- Merchant -> category rules learned from user corrections (Copilot Money style).
@@ -108,6 +123,8 @@ CREATE TABLE IF NOT EXISTS merchant_rules (
     category TEXT NOT NULL,
     times_used INTEGER NOT NULL DEFAULT 1,
     confidence REAL NOT NULL DEFAULT 0.5,
+    user_id INTEGER,
     created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+    updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );

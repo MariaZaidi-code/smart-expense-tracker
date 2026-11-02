@@ -12,6 +12,7 @@ def set_budget(
     amount: float,
     category: str | None = None,
     db_path: str | Path | None = None,
+    user_id: int | None = None,
 ) -> int:
     if len(month) != 7 or month[4] != "-":
         raise ValueError("Month must use YYYY-MM format.")
@@ -27,8 +28,8 @@ def set_budget(
                 raise ValueError("Select a valid category.")
             category_id = row["id"]
         existing = connection.execute(
-            "SELECT id FROM budgets WHERE month = ? AND category_id IS ?",
-            (month, category_id),
+            "SELECT id FROM budgets WHERE month = ? AND category_id IS ? AND user_id IS ?",
+            (month, category_id, user_id),
         ).fetchone()
         if existing:
             connection.execute(
@@ -37,14 +38,14 @@ def set_budget(
             )
             return int(existing["id"])
         cursor = connection.execute(
-            "INSERT INTO budgets(month, category_id, amount) VALUES (?, ?, ?)",
-            (month, category_id, amount),
+            "INSERT INTO budgets(month, category_id, amount, user_id) VALUES (?, ?, ?, ?)",
+            (month, category_id, amount, user_id),
         )
         return int(cursor.lastrowid)
 
 
 def list_budgets(
-    month: str | None = None, db_path: str | Path | None = None
+    month: str | None = None, db_path: str | Path | None = None, user_id: int | None = None
 ) -> list[dict]:
     with get_connection(db_path) as connection:
         if month:
@@ -57,13 +58,14 @@ def list_budgets(
                            FROM transactions t
                            WHERE substr(t.transaction_date, 1, 7) = b.month
                              AND (b.category_id IS NULL OR t.category_id = b.category_id)
+                             AND (? IS NULL OR t.user_id = ?)
                        ), 0) AS spent
                 FROM budgets b
                 LEFT JOIN categories c ON c.id = b.category_id
-                WHERE b.month = ?
+                WHERE b.month = ? AND (? IS NULL OR b.user_id = ?)
                 ORDER BY b.category_id IS NULL DESC, c.name
                 """,
-                (month,),
+                (user_id, user_id, month, user_id, user_id),
             ).fetchall()
         else:
             rows = connection.execute(
@@ -75,11 +77,14 @@ def list_budgets(
                            FROM transactions t
                            WHERE substr(t.transaction_date, 1, 7) = b.month
                              AND (b.category_id IS NULL OR t.category_id = b.category_id)
+                             AND (? IS NULL OR t.user_id = ?)
                        ), 0) AS spent
                 FROM budgets b
                 LEFT JOIN categories c ON c.id = b.category_id
+                WHERE (? IS NULL OR b.user_id = ?)
                 ORDER BY b.month, b.category_id IS NULL DESC, c.name
-                """
+                """,
+                (user_id, user_id, user_id, user_id),
             ).fetchall()
         return [
             {
@@ -110,6 +115,7 @@ def create_budget(
     category: str | None,
     amount: float,
     db_path: str | Path | None = None,
+    user_id: int | None = None,
 ) -> dict:
     """Qaim/MCP-compatible wrapper.
 
@@ -121,7 +127,7 @@ def create_budget(
     clean_category = None if category in (None, "", "ALL") else category
     if clean_category:
         ensure_category(clean_category, db_path=db_path)
-    budget_id = set_budget(month, amount, clean_category, db_path)
+    budget_id = set_budget(month, amount, clean_category, db_path, user_id=user_id)
     return {
         "id": budget_id,
         "month": month,

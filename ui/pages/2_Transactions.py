@@ -6,6 +6,7 @@ from datetime import date, timedelta
 
 import streamlit as st
 
+from expense.rules import suggest_category
 from expense.transactions import (
     add_transaction,
     delete_transaction,
@@ -20,40 +21,55 @@ categories = list_categories()
 
 @st.dialog("Add expense")
 def add_expense_dialog() -> None:
-    st.caption("Record a synthetic transaction in Pakistani Rupees.")
-    with st.form("add_expense_form"):
-        description = st.text_input("Description *", placeholder="e.g. Lahore Kitchen")
-        amount = st.number_input("Amount (Rs.) *", min_value=0.0, step=100.0)
-        category = st.selectbox("Category *", ["Select a category", *categories])
-        transaction_date = st.date_input("Date *", value=date.today())
-        payment = st.selectbox("Payment method", ["Card", "Cash", "Bank transfer"])
-        notes = st.text_area("Notes", placeholder="Optional context")
-        submitted = st.form_submit_button("Save expense", width="stretch")
-        if submitted:
-            errors = []
-            if not description.strip():
-                errors.append("Description is required.")
-            if amount <= 0:
-                errors.append("Amount must be greater than Rs. 0.")
-            if category == "Select a category":
-                errors.append("Select a category.")
-            if errors:
-                for error in errors:
-                    st.error(error, icon="⚠️")
-            else:
-                try:
-                    add_transaction(
-                        description,
-                        amount,
-                        category,
-                        transaction_date.isoformat(),
-                        payment,
-                        notes,
-                    )
-                    st.success("Expense added.")
-                    st.rerun()
-                except ValueError as error:
-                    st.error(str(error), icon="⚠️")
+    st.caption(
+        "Record a synthetic transaction. The category is suggested from merchants "
+        "you have already categorised."
+    )
+    description = st.text_input("Description *", placeholder="e.g. Lahore Kitchen")
+    suggestion = suggest_category(description) if description.strip() else None
+    options = ["Select a category", *categories]
+    default_index = 0
+    if suggestion and suggestion.get("category") in categories:
+        default_index = options.index(suggestion["category"])
+        st.caption(
+            f"✨ Suggested **{suggestion['category']}** — {suggestion['source']} "
+            f"({float(suggestion.get('confidence', 0)) * 100:.0f}% confidence)."
+        )
+    category = st.selectbox(
+        "Category *",
+        options,
+        index=default_index,
+        key=f"add_category::{description.strip().lower()[:40]}",
+    )
+    amount = st.number_input("Amount (Rs.) *", min_value=0.0, step=100.0)
+    transaction_date = st.date_input("Date *", value=date.today())
+    payment = st.selectbox("Payment method", ["Card", "Cash", "Bank transfer"])
+    notes = st.text_area("Notes", placeholder="Optional context")
+    if st.button("Save expense", width="stretch"):
+        errors = []
+        if not description.strip():
+            errors.append("Description is required.")
+        if amount <= 0:
+            errors.append("Amount must be greater than Rs. 0.")
+        if category == "Select a category":
+            errors.append("Select a category.")
+        if errors:
+            for error in errors:
+                st.error(error, icon="⚠️")
+        else:
+            try:
+                add_transaction(
+                    description,
+                    amount,
+                    category,
+                    transaction_date.isoformat(),
+                    payment,
+                    notes,
+                )
+                st.success("Expense added. The merchant is now remembered for next time.")
+                st.rerun()
+            except ValueError as error:
+                st.error(str(error), icon="⚠️")
 
 
 @st.dialog("Edit expense")

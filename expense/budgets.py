@@ -44,26 +44,43 @@ def set_budget(
 
 
 def list_budgets(
-    month: str, db_path: str | Path | None = None
+    month: str | None = None, db_path: str | Path | None = None
 ) -> list[dict]:
     with get_connection(db_path) as connection:
-        rows = connection.execute(
-            """
-            SELECT b.id, b.month, b.amount,
-                   c.name AS category,
-                   COALESCE((
-                       SELECT SUM(t.amount)
-                       FROM transactions t
-                       WHERE substr(t.transaction_date, 1, 7) = b.month
-                         AND (b.category_id IS NULL OR t.category_id = b.category_id)
-                   ), 0) AS spent
-            FROM budgets b
-            LEFT JOIN categories c ON c.id = b.category_id
-            WHERE b.month = ?
-            ORDER BY b.category_id IS NULL DESC, c.name
-            """,
-            (month,),
-        ).fetchall()
+        if month:
+            rows = connection.execute(
+                """
+                SELECT b.id, b.month, b.amount,
+                       c.name AS category,
+                       COALESCE((
+                           SELECT SUM(t.amount)
+                           FROM transactions t
+                           WHERE substr(t.transaction_date, 1, 7) = b.month
+                             AND (b.category_id IS NULL OR t.category_id = b.category_id)
+                       ), 0) AS spent
+                FROM budgets b
+                LEFT JOIN categories c ON c.id = b.category_id
+                WHERE b.month = ?
+                ORDER BY b.category_id IS NULL DESC, c.name
+                """,
+                (month,),
+            ).fetchall()
+        else:
+            rows = connection.execute(
+                """
+                SELECT b.id, b.month, b.amount,
+                       c.name AS category,
+                       COALESCE((
+                           SELECT SUM(t.amount)
+                           FROM transactions t
+                           WHERE substr(t.transaction_date, 1, 7) = b.month
+                             AND (b.category_id IS NULL OR t.category_id = b.category_id)
+                       ), 0) AS spent
+                FROM budgets b
+                LEFT JOIN categories c ON c.id = b.category_id
+                ORDER BY b.month, b.category_id IS NULL DESC, c.name
+                """
+            ).fetchall()
         return [
             {
                 **dict(row),
@@ -74,3 +91,48 @@ def list_budgets(
             }
             for row in rows
         ]
+
+
+def get_budget(
+    month: str,
+    category: str | None = None,
+    db_path: str | Path | None = None,
+) -> dict | None:
+    """Return one budget row.  ``category=None`` is the monthly total."""
+    for budget in list_budgets(month, db_path):
+        if budget["category"] == category:
+            return budget
+    return None
+
+
+def create_budget(
+    month: str,
+    category: str | None,
+    amount: float,
+    db_path: str | Path | None = None,
+) -> dict:
+    """Qaim/MCP-compatible wrapper.
+
+    ``category='ALL'`` (or ``None``) creates the monthly overall budget;
+    every other value creates a category budget.
+    """
+    from expense.transactions import ensure_category
+
+    clean_category = None if category in (None, "", "ALL") else category
+    if clean_category:
+        ensure_category(clean_category, db_path=db_path)
+    budget_id = set_budget(month, amount, clean_category, db_path)
+    return {
+        "id": budget_id,
+        "month": month,
+        "category": clean_category or "ALL",
+        "amount": float(amount),
+    }
+
+
+def delete_budget(budget_id: int, db_path: str | Path | None = None) -> bool:
+    with get_connection(db_path) as connection:
+        cursor = connection.execute("DELETE FROM budgets WHERE id = ?", (budget_id,))
+        if cursor.rowcount == 0:
+            raise ValueError("Budget not found.")
+        return True

@@ -27,10 +27,10 @@ if monthly:
         left, right = st.columns([3, 1])
         with left:
             st.markdown("### Monthly budget")
-            st.markdown(
+            st.html(
                 f"## {format_money(monthly['spent'])} "
                 f"<span style='font-size:1rem;opacity:.7'>of {format_money(monthly['amount'])}</span>",
-                unsafe_allow_html=True,
+                
             )
             remaining_copy = (
                 f"{format_money(monthly['remaining'])} remaining"

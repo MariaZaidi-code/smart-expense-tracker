@@ -13,13 +13,13 @@ def format_money(value: float) -> str:
 
 
 def page_header(title: str, subtitle: str, kicker: str = "PERSONAL FINANCE") -> None:
-    st.markdown(f'<div class="page-kicker">{html.escape(kicker)}</div>', unsafe_allow_html=True)
+    st.html(f'<div class="page-kicker">{html.escape(kicker)}</div>')
     st.title(title)
-    st.markdown(f'<div class="page-subtitle">{html.escape(subtitle)}</div>', unsafe_allow_html=True)
+    st.html(f'<div class="page-subtitle">{html.escape(subtitle)}</div>')
 
 
 def kpi_card(title: str, value: str, detail: str) -> None:
-    st.markdown(
+    st.html(
         f"""
         <div class="kpi-card">
             <div class="kpi-label">{html.escape(title)}</div>
@@ -27,13 +27,13 @@ def kpi_card(title: str, value: str, detail: str) -> None:
             <div class="kpi-detail">{html.escape(detail)}</div>
         </div>
         """,
-        unsafe_allow_html=True,
+        
     )
 
 
 def hero_card(value: float, change_percent: float) -> None:
     direction = "higher" if change_percent >= 0 else "lower"
-    st.markdown(
+    st.html(
         f"""
         <div class="hero-card">
             <div class="hero-label">REMAINING BUDGET</div>
@@ -46,7 +46,90 @@ def hero_card(value: float, change_percent: float) -> None:
             </div>
         </div>
         """,
-        unsafe_allow_html=True,
+        
+    )
+
+
+def safe_to_spend_card(snapshot: dict) -> None:
+    """Hero card for the Safe-to-Spend number (PocketGuard / Safe Spend style)."""
+    status = snapshot.get("status", "comfortable")
+    tone = "tight" if status in {"tight", "critical", "no_budget"} else "comfortable"
+    st.html(
+        f"""
+        <div class="hero-card safe-card {tone}">
+            <div class="hero-label">SAFE TO SPEND</div>
+            <div class="hero-value">{format_money(snapshot.get('safe_to_spend', 0))}</div>
+            <div class="hero-change">{html.escape(snapshot.get('label', ''))} ·
+                {format_money(snapshot.get('per_day', 0))}/day for
+                {int(snapshot.get('days_left', 0))} days</div>
+            <div class="safe-meta">
+                <span>{format_money(snapshot.get('remaining', 0))} budget left</span>
+                <span>{format_money(snapshot.get('upcoming_commitments', 0))} reserved for bills</span>
+            </div>
+            <div class="hero-illustration" aria-hidden="true">
+                <div class="hero-coin one"></div>
+                <div class="hero-coin two"></div>
+                <div class="hero-wallet"></div>
+            </div>
+        </div>
+        """,
+        
+    )
+
+
+def score_bar(label: str, score: float, detail: str, advice: str = "") -> None:
+    """Explainable health-score component row."""
+    percent = max(0.0, min(float(score), 100.0))
+    tone = "over" if percent < 55 else ""
+    st.html(
+        f"""
+        <div class="budget-block">
+            <div class="budget-row">
+                <strong>{html.escape(label)}</strong>
+                <span class="money">{percent:.0f}/100</span>
+            </div>
+            <div class="progress-track">
+                <div class="progress-fill {tone}" style="width:{percent:.1f}%"></div>
+            </div>
+            <div class="score-detail">{html.escape(detail)}</div>
+            {f'<div class="score-advice">→ {html.escape(advice)}</div>' if advice else ''}
+        </div>
+        """,
+        
+    )
+
+
+def goal_progress(goal: dict) -> None:
+    percent = min(float(goal.get("progress_percent", 0)), 100.0)
+    status = goal.get("status", "active")
+    over = status == "behind"
+    label = {
+        "achieved": "✓ Achieved",
+        "on_track": "✓ On track",
+        "active": "◷ In progress",
+        "behind": "⚠ Behind schedule",
+    }.get(status, status.title())
+    monthly = goal.get("required_monthly")
+    monthly_text = (
+        f"{format_money(monthly)}/month needed" if monthly else "No target date set"
+    )
+    st.html(
+        f"""
+        <div class="budget-block">
+            <div class="budget-row">
+                <strong>{html.escape(goal['name'])}</strong>
+                <span class="money">{format_money(goal['saved_amount'])} / {format_money(goal['target_amount'])}</span>
+            </div>
+            <div class="progress-track">
+                <div class="progress-fill {'over' if over else ''}" style="width:{percent:.1f}%"></div>
+            </div>
+            <div class="budget-row" style="margin-top:.45rem">
+                <span class="status-pill {'over' if over else ''}">{label}</span>
+                <span>{percent:.0f}% funded · {monthly_text}</span>
+            </div>
+        </div>
+        """,
+        
     )
 
 
@@ -55,7 +138,7 @@ def budget_progress(name: str, spent: float, limit: float) -> None:
     over = spent > limit
     remaining = limit - spent
     label = "Over budget" if over else "On track"
-    st.markdown(
+    st.html(
         f"""
         <div class="budget-block">
             <div class="budget-row">
@@ -71,12 +154,12 @@ def budget_progress(name: str, spent: float, limit: float) -> None:
             </div>
         </div>
         """,
-        unsafe_allow_html=True,
+        
     )
 
 
 def alert_banner(title: str, reason: str) -> None:
-    st.markdown(
+    st.html(
         f"""
         <div class="alert-banner">
             <div class="alert-icon">!</div>
@@ -86,14 +169,14 @@ def alert_banner(title: str, reason: str) -> None:
             </div>
         </div>
         """,
-        unsafe_allow_html=True,
+        
     )
 
 
 def tool_tag(tool: str) -> None:
-    st.markdown(
+    st.html(
         f'<span class="tool-tag">⚙ Used tool: {html.escape(tool)}</span>',
-        unsafe_allow_html=True,
+        
     )
 
 
@@ -101,16 +184,16 @@ def source_citation(source: dict, index: int) -> None:
     title = source.get("title", f"Source {index}")
     excerpt = source.get("excerpt", "No excerpt provided.")
     with st.expander(f"Source {index}: {title}"):
-        st.markdown(
+        st.html(
             f'<div class="source-card">{html.escape(excerpt)}</div>',
-            unsafe_allow_html=True,
+            
         )
 
 
 def empty_state(title: str, message: str) -> None:
-    st.markdown(
+    st.html(
         f'<div class="empty-state"><strong>{html.escape(title)}</strong><br><br>{html.escape(message)}</div>',
-        unsafe_allow_html=True,
+        
     )
 
 
@@ -135,7 +218,7 @@ def recent_transaction_list(rows: list[dict]) -> None:
             </div>
             """
         )
-    st.markdown(
+    st.html(
         f'<div class="transaction-list">{"".join(rendered)}</div>',
-        unsafe_allow_html=True,
+        
     )

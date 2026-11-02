@@ -12,6 +12,7 @@ from expense.analytics import (
     spending_trend,
     unusual_spending,
 )
+from expense.insights import financial_health, safe_to_spend
 from expense.transactions import list_transactions
 from ui.components import (
     alert_banner,
@@ -41,6 +42,8 @@ trend = spending_trend(month)
 budgets = budget_status(month)
 alerts = unusual_spending(month)
 recent = list_transactions()[:5]
+spendable = safe_to_spend(month)
+health = financial_health(month)
 
 page_header(
     "Good evening, Rameen",
@@ -51,8 +54,13 @@ page_header(
 change = summary["month_change_percent"]
 hero_card(summary["remaining"], -change)
 
-columns = st.columns(3)
+columns = st.columns(4)
 details = [
+    (
+        "Safe to spend",
+        format_money(spendable["safe_to_spend"]),
+        f"{format_money(spendable['per_day'])}/day · {spendable['label']}",
+    ),
     ("Spent this month", format_money(summary["total_spent"]), "Across all recorded categories"),
     ("Total budget", format_money(summary["total_budget"]), "Monthly spending limit"),
     (
@@ -64,6 +72,15 @@ details = [
 for column, values in zip(columns, details):
     with column:
         kpi_card(*values)
+
+insight_left, insight_right = st.columns([3, 1])
+with insight_left:
+    st.caption(
+        f"Financial health **{health['score']}/100** (grade {health['grade']}) · "
+        f"focus: {health['focus_area'].lower()}. {health['next_step']}"
+    )
+with insight_right:
+    st.caption("Open Smart Insights from the sidebar navigation.")
 
 chart_left, chart_right = st.columns([1.35, 0.85])
 with chart_left:
@@ -160,9 +177,9 @@ with right:
         for alert in alerts:
             alert_banner(alert["category"], alert["reason"])
     else:
-        st.markdown(
+        st.html(
             '<div class="surface-card" style="padding:1.1rem"><strong>✓ No unusual activity</strong><p style="margin:.4rem 0 0">Your categories are within their recent patterns.</p></div>',
-            unsafe_allow_html=True,
+            
         )
 
 st.subheader("Recent transactions")

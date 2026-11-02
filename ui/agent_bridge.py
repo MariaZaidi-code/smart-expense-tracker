@@ -1,8 +1,18 @@
-"""Stable UI bridge for the AI-agent module owned by the agent team."""
+"""Stable UI bridge for the Personal Expense Management Agent.
+
+The Streamlit page only knows this contract.  The real agent (Grok + memory +
+RAG + MCP) lives in the ``agent`` package.
+"""
 
 from __future__ import annotations
 
 from typing import TypedDict
+
+from agent.agent import ExpenseAgent
+from agent.memory import new_session_id
+
+DEFAULT_USER_ID = "demo_user"
+_AGENTS: dict[tuple[str, str], ExpenseAgent] = {}
 
 
 class AgentResponse(TypedDict):
@@ -11,60 +21,53 @@ class AgentResponse(TypedDict):
     sources: list[dict]
 
 
-def ask_agent(message: str, session_id: str) -> AgentResponse:
-    """Return a deterministic mock response until the real agent is connected.
+def get_agent(
+    session_id: str | None = None,
+    user_id: str = DEFAULT_USER_ID,
+) -> ExpenseAgent:
+    session_id = session_id or new_session_id()
+    key = (user_id, session_id)
+    if key not in _AGENTS:
+        _AGENTS[key] = ExpenseAgent(user_id=user_id, session_id=session_id)
+    return _AGENTS[key]
 
-    The teammate-owned implementation can replace this function without changing
-    the chat page as long as the return contract remains the same.
+
+def reset_agent_cache() -> None:
+    _AGENTS.clear()
+
+
+def ask_agent(
+    message: str,
+    session_id: str,
+    user_id: str = DEFAULT_USER_ID,
+    confirm_write: bool = False,
+) -> dict:
+    """Ask the agent and return a UI-friendly response.
+
+    Never raises for expected agent/tool failures; the page always gets a
+    message it can render.
     """
-    if not message.strip():
+    if not (message or "").strip():
         raise ValueError("Please enter a question.")
-
-    lowered = message.lower()
-    if "food" in lowered:
+    try:
+        agent = get_agent(session_id=session_id, user_id=user_id)
+        response = agent.ask(message, confirm_write=confirm_write)
+        return {
+            **response,
+            "tools_used": response.get("tools_used", []),
+            "sources": response.get("sources", []),
+        }
+    except Exception as exc:  # defensive: keep the chat usable
         return {
             "answer": (
-                "You spent **Rs. 5,370** on food and dining this month. "
-                "Your food budget is **Rs. 8,000**, so **Rs. 2,630 remains**."
+                "I’m sorry, the expense agent hit an unexpected error. "
+                f"Details: `{type(exc).__name__}: {exc}`. Your data is safe — please try again."
             ),
-            "tools_used": ["get_spending_summary", "get_budget_status"],
-            "sources": [
-                {
-                    "title": "November food transactions",
-                    "excerpt": "Four synthetic food transactions totalling Rs. 5,370.",
-                }
-            ],
+            "tools_used": [],
+            "sources": [],
+            "memory_used": [],
+            "llm_used": False,
+            "llm_error": str(exc),
+            "transport": "none",
+            "session_id": session_id,
         }
-    if "budget" in lowered or "left" in lowered:
-        return {
-            "answer": (
-                "Your monthly budget is **Rs. 46,000**. Based on recorded "
-                "expenses, you still have room available this month. "
-                "The Dashboard shows the exact live balance."
-            ),
-            "tools_used": ["get_budget_status"],
-            "sources": [
-                {
-                    "title": "Monthly budget record",
-                    "excerpt": "November 2026 monthly budget and category limits.",
-                }
-            ],
-        }
-    return {
-        "answer": (
-            "A practical saving step is to set a weekly dining cap and move the "
-            "difference into savings at the end of each week. Your recent records "
-            "show dining is the easiest category to adjust without affecting bills."
-        ),
-        "tools_used": ["search_financial_guidance"],
-        "sources": [
-            {
-                "title": "50/30/20 budgeting guide",
-                "excerpt": "Review flexible wants weekly and redirect unspent funds toward savings goals.",
-            },
-            {
-                "title": "Synthetic transaction summary",
-                "excerpt": "Dining is a recurring discretionary category in the demo dataset.",
-            },
-        ],
-    }

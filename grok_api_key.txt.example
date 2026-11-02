@@ -1,0 +1,3 @@
+# Copy this file to grok_api_key.txt and paste your key on the next line.
+# The agent reads the first non-comment line.
+xai-REPLACE_WITH_YOUR_KEY

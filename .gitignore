@@ -5,4 +5,9 @@ node_modules/
 *.db
 dist/
 build/
-PY
+.pytest_cache/
+data/
+.chroma/
+.grok_api_key
+grok_api_key.txt
+api_key.txt

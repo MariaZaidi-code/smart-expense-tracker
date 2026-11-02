@@ -1,30 +1,34 @@
-"""Shared charcoal, lavender, and peach design tokens."""
+"""Shared design tokens for a clean, premium light SaaS look.
+
+White canvas, slate surfaces, single blue accent. No dark theme, no indigo.
+"""
 
 from __future__ import annotations
 
 import streamlit as st
 
-BG_BASE = "#242529"
-BG_DEEP = "#242529"
-SURFACE = "#373841"
-PILL = "#373841"
-MUTED = "#5F6067"
-PRIMARY = "#A3A7F6"
-OVER_BUDGET = "#DCD9DB"
-TEXT_MAIN = "#DCD9DB"
-TEXT_MUTED = "#858C95"
-INK = "#242529"
-PRIMARY_FADE = "rgba(163,167,246,0.16)"
-GRID = "rgba(95,96,103,0.55)"
+BG_BASE = "#f8fafc"
+BG_DEEP = "#f1f5f9"
+SURFACE = "#ffffff"
+PILL = "#e2e8f0"
+MUTED = "#cbd5e1"
+PRIMARY = "#2563eb"
+PRIMARY_HOVER = "#1d4ed8"
+OVER_BUDGET = "#dc2626"
+TEXT_MAIN = "#0f172a"
+TEXT_MUTED = "#64748b"
+INK = "#ffffff"
+PRIMARY_FADE = "rgba(37,99,235,0.08)"
+GRID = "rgba(203,213,225,0.6)"
 
-CHART_COLORS = [PRIMARY, OVER_BUDGET, TEXT_MAIN, MUTED, SURFACE, PILL]
+CHART_COLORS = [PRIMARY, "#06b6d4", "#10b981", "#f59e0b", OVER_BUDGET, TEXT_MUTED]
 
 
 def inject_theme() -> None:
-    st.markdown(
+    st.html(
         f"""
         <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
         :root {{
             --bg-base: {BG_BASE};
@@ -33,6 +37,7 @@ def inject_theme() -> None:
             --pill: {PILL};
             --muted: {MUTED};
             --primary: {PRIMARY};
+            --primary-hover: {PRIMARY_HOVER};
             --text-main: {TEXT_MAIN};
             --text-muted: {TEXT_MUTED};
             --over-budget: {OVER_BUDGET};
@@ -40,7 +45,8 @@ def inject_theme() -> None:
         }}
 
         html, body, [class*="css"], [data-testid="stAppViewContainer"] {{
-            font-family: 'Inter', sans-serif;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            -webkit-font-smoothing: antialiased;
         }}
 
         .stApp {{
@@ -49,8 +55,8 @@ def inject_theme() -> None:
         }}
 
         [data-testid="stSidebar"] {{
-            background: var(--bg-base);
-            border-right: 1px solid var(--surface);
+            background: #ffffff;
+            border-right: 1px solid var(--pill);
         }}
 
         [data-testid="stSidebarNav"] span,
@@ -59,97 +65,111 @@ def inject_theme() -> None:
         }}
 
         [data-testid="stSidebarNavLink"] {{
-            border-radius: 999px;
-            margin-bottom: .3rem;
+            border-radius: 6px;
+            margin-bottom: 2px;
             color: var(--text-muted);
+            font-weight: 500;
+            font-size: 0.9rem;
+            padding: 0.45rem 0.75rem;
         }}
 
         [data-testid="stSidebarNavLink"][aria-current="page"] {{
-            background: var(--surface);
+            background: var(--pill);
             color: var(--text-main);
         }}
 
         [data-testid="stHeader"] {{
-            background: color-mix(in srgb, var(--bg-base) 92%, transparent);
-            border-bottom: 1px solid var(--surface);
-            backdrop-filter: blur(14px);
+            background: rgba(248,250,252,0.92);
+            border-bottom: 1px solid var(--pill);
+            backdrop-filter: blur(8px);
         }}
 
         .block-container {{
-            max-width: 1440px;
-            padding-top: 2.25rem;
-            padding-bottom: 4rem;
+            max-width: 1280px;
+            padding-top: 2rem;
+            padding-bottom: 3rem;
+            padding-inline: 2rem;
         }}
 
-        h1, h2, h3, h4, strong, b {{
+        h1, h2, h3, h4 {{
             color: var(--text-main) !important;
-            letter-spacing: -0.02em;
+            letter-spacing: -0.025em;
+            font-weight: 600;
         }}
 
         p, label, [data-testid="stCaptionContainer"] {{
             color: var(--text-muted);
         }}
 
+        strong, b {{
+            color: var(--text-main);
+            font-weight: 600;
+        }}
+
         .page-kicker {{
             color: var(--primary);
-            font-size: .72rem;
-            font-weight: 700;
-            letter-spacing: .16em;
+            font-size: 0.7rem;
+            font-weight: 600;
+            letter-spacing: 0.12em;
             text-transform: uppercase;
-            margin-bottom: .4rem;
+            margin-bottom: 0.5rem;
         }}
 
         .page-subtitle {{
             color: var(--text-muted);
-            font-size: .92rem;
-            margin-top: -.4rem;
-            margin-bottom: 1.5rem;
+            font-size: 0.9rem;
+            margin-top: -0.25rem;
+            margin-bottom: 1.75rem;
+            font-weight: 400;
         }}
 
         .surface-card, [data-testid="stExpander"], [data-testid="stForm"],
         [data-testid="stVerticalBlockBorderWrapper"] {{
             background: var(--surface);
-            border: 1px solid var(--muted);
-            border-radius: 1.875rem;
-            box-shadow: 0 16px 36px rgba(36,37,41,.22);
+            border: 1px solid var(--pill);
+            border-radius: 10px;
+            box-shadow: 0 1px 2px rgba(15,23,42,0.04);
         }}
 
         [data-testid="stMetric"] {{
             padding: 1rem;
-            border-radius: 1.5rem;
-            background: var(--pill);
+            border-radius: 8px;
+            background: var(--surface);
+            border: 1px solid var(--pill);
         }}
 
         .kpi-card {{
-            min-height: 9.5rem;
-            padding: 1.25rem;
+            min-height: 7.5rem;
+            padding: 1.1rem 1.25rem;
             background: var(--surface);
-            border: 1px solid var(--muted);
-            border-radius: 1.875rem;
-            box-shadow: 0 16px 36px rgba(36,37,41,.22);
+            border: 1px solid var(--pill);
+            border-radius: 10px;
+            box-shadow: 0 1px 2px rgba(15,23,42,0.04);
         }}
 
         .kpi-label {{
             color: var(--text-muted);
-            font-size: .75rem;
-            font-weight: 600;
+            font-size: 0.72rem;
+            font-weight: 500;
         }}
 
         .kpi-value {{
             color: var(--text-main);
-            font-size: clamp(1.45rem, 2vw, 2rem);
-            font-weight: 700;
+            font-size: 1.6rem;
+            font-weight: 600;
             font-variant-numeric: tabular-nums;
-            margin: .85rem 0 .4rem;
+            margin: 0.5rem 0 0.3rem;
+            letter-spacing: -0.02em;
         }}
 
         .kpi-detail {{
             color: var(--text-muted);
-            font-size: .72rem;
+            font-size: 0.72rem;
+            line-height: 1.4;
         }}
 
         .budget-block {{
-            margin: .75rem 0 1.2rem;
+            margin: 0.6rem 0 1rem;
         }}
 
         .budget-row {{
@@ -157,19 +177,20 @@ def inject_theme() -> None:
             align-items: center;
             justify-content: space-between;
             gap: 1rem;
-            margin-bottom: .5rem;
-            font-size: .78rem;
+            margin-bottom: 0.4rem;
+            font-size: 0.8rem;
         }}
 
         .money {{
             font-variant-numeric: tabular-nums;
-            font-weight: 650;
+            font-weight: 500;
+            color: var(--text-main);
         }}
 
         .progress-track {{
-            height: .62rem;
+            height: 6px;
             overflow: hidden;
-            background: var(--muted);
+            background: var(--pill);
             border-radius: 999px;
         }}
 
@@ -186,97 +207,102 @@ def inject_theme() -> None:
         .status-pill, .tool-tag {{
             display: inline-flex;
             align-items: center;
-            gap: .35rem;
+            gap: 0.3rem;
             width: fit-content;
-            padding: .28rem .68rem;
-            border-radius: 999px;
-            font-size: .68rem;
-            font-weight: 700;
-            letter-spacing: .02em;
-            background: color-mix(in srgb, var(--primary) 14%, transparent);
-            color: var(--text-main);
-            border: 1px solid var(--muted);
+            padding: 0.2rem 0.6rem;
+            border-radius: 6px;
+            font-size: 0.68rem;
+            font-weight: 500;
             background: var(--pill);
+            color: var(--text-muted);
+            border: 1px solid var(--muted);
         }}
 
-        .tool-tag {{ color: var(--primary); }}
+        .tool-tag {{
+            color: var(--primary);
+            border-color: color-mix(in srgb, var(--primary) 30%, var(--muted));
+        }}
 
         .status-pill.over {{
             color: var(--over-budget);
-            border-color: color-mix(in srgb, var(--over-budget) 48%, transparent);
-            background: var(--pill);
+            border-color: color-mix(in srgb, var(--over-budget) 40%, var(--muted));
         }}
 
         .alert-banner {{
             display: flex;
-            gap: .8rem;
+            gap: 0.75rem;
             align-items: flex-start;
-            padding: 1rem;
-            margin-bottom: .7rem;
+            padding: 0.85rem 1rem;
+            margin-bottom: 0.6rem;
             background: var(--surface);
-            border: 1px solid var(--over-budget);
-            border-radius: 1.75rem;
+            border: 1px solid color-mix(in srgb, var(--over-budget) 30%, var(--pill));
+            border-radius: 10px;
         }}
 
         .alert-icon {{
             display: grid;
             place-items: center;
-            min-width: 2rem;
-            height: 2rem;
-            border-radius: 999px;
+            min-width: 1.6rem;
+            height: 1.6rem;
+            border-radius: 6px;
             background: var(--over-budget);
-            color: var(--ink);
-            font-weight: 800;
+            color: #ffffff;
+            font-weight: 700;
+            font-size: 0.8rem;
         }}
 
         .alert-title {{
             color: var(--text-main);
-            font-size: .82rem;
-            font-weight: 700;
+            font-size: 0.82rem;
+            font-weight: 600;
         }}
 
         .alert-copy {{
             color: var(--text-muted);
-            font-size: .75rem;
+            font-size: 0.75rem;
             line-height: 1.5;
-            margin-top: .18rem;
+            margin-top: 0.15rem;
         }}
 
         .empty-state {{
-            padding: 2.5rem 1.5rem;
+            padding: 2rem 1.5rem;
             text-align: center;
             border: 1px dashed var(--muted);
-            border-radius: 1.875rem;
+            border-radius: 10px;
             color: var(--text-muted);
+            font-size: 0.85rem;
         }}
 
         .source-card {{
-            padding: .8rem 1rem;
-            margin: .45rem 0;
-            border-radius: 1.25rem;
+            padding: 0.7rem 0.9rem;
+            margin: 0.4rem 0;
+            border-radius: 8px;
             background: var(--pill);
-            border-left: 3px solid var(--primary);
-            font-size: .76rem;
+            border-left: 2px solid var(--primary);
+            font-size: 0.78rem;
+            line-height: 1.5;
         }}
 
         div.stButton > button, div.stFormSubmitButton > button {{
-            min-height: 2.65rem;
-            border-radius: 999px;
+            min-height: 2.4rem;
+            border-radius: 6px;
             border: 1px solid var(--primary);
             background: var(--primary);
-            color: var(--ink);
-            font-weight: 700;
-            padding-inline: 1.15rem;
+            color: #ffffff;
+            font-weight: 500;
+            padding-inline: 1rem;
+            font-size: 0.85rem;
+            box-shadow: 0 1px 2px rgba(37,99,235,0.2);
         }}
 
         div.stButton > button:hover, div.stFormSubmitButton > button:hover {{
-            color: var(--ink);
-            border-color: var(--text-main);
-            background: var(--text-main);
+            color: #ffffff;
+            border-color: var(--primary-hover);
+            background: var(--primary-hover);
         }}
 
         div.stButton > button:focus-visible {{
-            box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 35%, transparent);
+            box-shadow: 0 0 0 2px color-mix(in srgb, var(--primary) 35%, transparent);
         }}
 
         [data-testid="stTextInput"] input,
@@ -285,136 +311,123 @@ def inject_theme() -> None:
         [data-testid="stDateInput"] input,
         textarea {{
             color: var(--text-main) !important;
-            background: color-mix(in srgb, var(--surface) 72%, var(--bg-base)) !important;
-            border-color: var(--muted) !important;
-            border-radius: 999px !important;
-            background: var(--pill) !important;
+            background: #ffffff !important;
+            border: 1px solid var(--muted) !important;
+            border-radius: 6px !important;
+            font-size: 0.85rem;
         }}
 
         [data-testid="stTextInput"] input:focus,
         [data-testid="stNumberInput"] input:focus,
         textarea:focus {{
             border-color: var(--primary) !important;
-            box-shadow: 0 0 0 2px color-mix(in srgb, var(--primary) 24%, transparent) !important;
+            box-shadow: 0 0 0 1px var(--primary) !important;
         }}
 
         [data-testid="stDataFrame"] {{
-            border: 1px solid var(--muted);
-            border-radius: 1.75rem;
+            border: 1px solid var(--pill);
+            border-radius: 10px;
             overflow: hidden;
         }}
 
         [data-testid="stChatMessage"] {{
             background: var(--surface);
-            border: 1px solid var(--muted);
-            border-radius: 1.75rem;
-            margin-bottom: .8rem;
+            border: 1px solid var(--pill);
+            border-radius: 10px;
+            margin-bottom: 0.75rem;
         }}
 
         [data-testid="stChatMessage"]:has([data-testid="chatAvatarIcon-user"]) {{
             background: var(--primary);
+            border-color: var(--primary);
         }}
 
         [data-testid="stChatMessage"]:has([data-testid="chatAvatarIcon-user"]) p {{
-            color: var(--ink) !important;
+            color: #ffffff !important;
         }}
 
         [data-testid="stChatInput"] {{
-            border-radius: 999px;
-            border: 1px solid var(--muted);
-            background: var(--pill);
+            border-radius: 8px;
+            border: 1px solid var(--pill);
+            background: #ffffff;
         }}
 
         hr {{
-            border-color: var(--surface);
+            border-color: var(--pill);
         }}
 
         .hero-card {{
             position: relative;
-            min-height: 16rem;
+            min-height: 11rem;
             overflow: hidden;
-            padding: 2rem;
-            border-radius: 2rem;
-            background: var(--primary);
-            color: var(--ink);
-            box-shadow: 0 18px 42px rgba(36,37,41,.28);
+            padding: 1.75rem;
+            border-radius: 12px;
+            background: linear-gradient(135deg, var(--primary) 0%, #1d4ed8 100%);
+            color: #ffffff;
+            box-shadow: 0 1px 2px rgba(37,99,235,0.15), 0 8px 24px rgba(37,99,235,0.12);
         }}
 
         .hero-card h2, .hero-card p, .hero-card strong {{
-            color: var(--ink) !important;
+            color: #ffffff !important;
         }}
 
         .hero-label {{
-            font-size: .78rem;
-            font-weight: 700;
-            opacity: .72;
+            font-size: 0.7rem;
+            font-weight: 600;
+            opacity: 0.85;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
         }}
 
         .hero-value {{
-            margin-top: .65rem;
-            font-size: clamp(2.25rem, 5vw, 4.25rem);
+            margin-top: 0.5rem;
+            font-size: 2.25rem;
             line-height: 1;
-            font-weight: 800;
+            font-weight: 600;
             font-variant-numeric: tabular-nums;
-            letter-spacing: -.06em;
+            letter-spacing: -0.04em;
         }}
 
         .hero-change {{
             display: inline-flex;
-            margin-top: 1.1rem;
-            padding: .45rem .8rem;
-            border-radius: 999px;
-            background: rgba(36,37,41,.12);
-            font-size: .75rem;
-            font-weight: 700;
+            margin-top: 0.75rem;
+            padding: 0.3rem 0.65rem;
+            border-radius: 6px;
+            background: rgba(255,255,255,0.18);
+            font-size: 0.75rem;
+            font-weight: 500;
         }}
 
-        .hero-illustration {{
-            position: absolute;
-            right: 2.2rem;
-            bottom: 1.5rem;
-            width: 10rem;
-            height: 8rem;
+        .hero-illustration {{ display: none; }}
+
+        .safe-meta {{
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem 1.25rem;
+            margin-top: 0.75rem;
+            font-size: 0.72rem;
+            font-weight: 500;
+            opacity: 0.9;
         }}
 
-        .hero-wallet {{
-            position: absolute;
-            right: 0;
-            bottom: 0;
-            width: 8.5rem;
-            height: 5.2rem;
-            border-radius: 1.5rem;
-            background: var(--ink);
-            transform: rotate(-4deg);
+        .score-detail {{
+            margin-top: 0.35rem;
+            color: var(--text-muted);
+            font-size: 0.75rem;
+            line-height: 1.45;
         }}
 
-        .hero-wallet::after {{
-            content: "";
-            position: absolute;
-            right: -.25rem;
-            top: 1.1rem;
-            width: 3.2rem;
-            height: 2.1rem;
-            border-radius: 999px 0 0 999px;
-            background: var(--over-budget);
+        .score-advice {{
+            margin-top: 0.2rem;
+            color: var(--primary);
+            font-size: 0.72rem;
+            font-weight: 500;
         }}
-
-        .hero-coin {{
-            position: absolute;
-            width: 2.5rem;
-            height: 2.5rem;
-            border-radius: 50%;
-            background: var(--over-budget);
-            border: .4rem solid rgba(36,37,41,.16);
-        }}
-
-        .hero-coin.one {{ right: 1rem; top: .2rem; }}
-        .hero-coin.two {{ right: 4.1rem; top: 1.1rem; width: 1.8rem; height: 1.8rem; }}
 
         .transaction-list {{
             overflow: hidden;
-            border-radius: 1.875rem;
-            border: 1px solid var(--muted);
+            border-radius: 10px;
+            border: 1px solid var(--pill);
             background: var(--surface);
         }}
 
@@ -423,45 +436,44 @@ def inject_theme() -> None:
             grid-template-columns: minmax(13rem, 2fr) 1fr 1fr auto;
             align-items: center;
             gap: 1rem;
-            padding: 1rem 1.25rem;
-            border-bottom: 1px solid var(--muted);
+            padding: 0.85rem 1.1rem;
+            border-bottom: 1px solid var(--pill);
+            font-size: 0.85rem;
         }}
 
         .transaction-row:last-child {{ border-bottom: 0; }}
-        .transaction-name {{ font-weight: 700; color: var(--text-main); }}
-        .transaction-meta {{ color: var(--text-muted); font-size: .72rem; }}
-        .transaction-more {{ color: var(--primary); font-size: .75rem; font-weight: 700; }}
+        .transaction-name {{ font-weight: 500; color: var(--text-main); }}
+        .transaction-meta {{ color: var(--text-muted); font-size: 0.72rem; }}
+        .transaction-more {{ color: var(--primary); font-size: 0.75rem; font-weight: 500; }}
 
         @media (max-width: 900px) {{
-            .block-container {{ padding-inline: 1.1rem; padding-top: 1.5rem; }}
-            .kpi-card {{ min-height: 8.5rem; }}
+            .block-container {{ padding-inline: 1.25rem; padding-top: 1.5rem; }}
+            .kpi-card {{ min-height: 7rem; }}
         }}
 
         @media (max-width: 480px) {{
-            .block-container {{ padding: 1rem .85rem 5rem; }}
-            h1 {{ font-size: 1.65rem !important; }}
-            .hero-card {{ min-height: 19rem; padding: 1.5rem; border-radius: 1.75rem; }}
-            .hero-value {{ font-size: 2.65rem; }}
-            .hero-illustration {{ right: 1.25rem; bottom: 1.2rem; transform: scale(.82); transform-origin: bottom right; }}
-            .kpi-card {{ min-height: 7.75rem; border-radius: 1.6rem; }}
-            .kpi-value {{ font-size: 1.45rem; margin-top: .55rem; }}
+            .block-container {{ padding: 1rem 1rem 4rem; }}
+            h1 {{ font-size: 1.5rem !important; }}
+            .hero-card {{ min-height: 9rem; padding: 1.25rem; border-radius: 10px; }}
+            .hero-value {{ font-size: 1.85rem; }}
+            .kpi-card {{ min-height: 6.5rem; border-radius: 8px; }}
+            .kpi-value {{ font-size: 1.3rem; margin-top: 0.4rem; }}
             .transaction-row {{ grid-template-columns: 1fr auto; }}
             .transaction-row > :nth-child(2), .transaction-row > :nth-child(3) {{ display: none; }}
-            [data-testid="stHorizontalBlock"] {{ gap: .75rem; }}
+            [data-testid="stHorizontalBlock"] {{ gap: 0.6rem; }}
         }}
         </style>
         """,
-        unsafe_allow_html=True,
     )
 
 
 def chart_layout(height: int = 340) -> dict:
     return {
         "height": height,
-        "margin": dict(l=10, r=10, t=30, b=10),
+        "margin": dict(l=8, r=8, t=24, b=8),
         "paper_bgcolor": "rgba(0,0,0,0)",
         "plot_bgcolor": "rgba(0,0,0,0)",
         "font": dict(family="Inter", color=TEXT_MAIN, size=11),
-        "legend": dict(orientation="h", yanchor="bottom", y=1.03, x=0),
-        "hoverlabel": dict(bgcolor=SURFACE, font_color=TEXT_MAIN),
+        "legend": dict(orientation="h", yanchor="bottom", y=1.02, x=0),
+        "hoverlabel": dict(bgcolor=SURFACE, font_color=TEXT_MAIN, bordercolor=MUTED),
     }

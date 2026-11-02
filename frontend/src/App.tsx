@@ -372,4 +372,3 @@ export default function App() {
     </div>
   );
 }
-PY

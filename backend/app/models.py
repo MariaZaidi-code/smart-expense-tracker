@@ -20,6 +20,8 @@ class User(Base):
     budgets = relationship("Budget", back_populates="owner", cascade="all, delete-orphan")
     incomes = relationship("Income", back_populates="owner", cascade="all, delete-orphan")
     recurring_expenses = relationship("RecurringExpense", back_populates="owner", cascade="all, delete-orphan")
+    savings_goals = relationship("SavingsGoal", back_populates="owner", cascade="all, delete-orphan")
+    savings_goals = relationship("SavingsGoal", back_populates="owner", cascade="all, delete-orphan")
 
 
 class Category(Base):
@@ -96,6 +98,23 @@ class RecurringExpense(Base):
 
     owner = relationship("User", back_populates="recurring_expenses")
     category = relationship("Category")
+
+
+class SavingsGoal(Base):
+    __tablename__ = "savings_goals"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    name = Column(String, nullable=False)
+    description = Column(String, nullable=True)
+    target_amount = Column(Float, nullable=False)
+    saved_amount = Column(Float, default=0.0, nullable=False)
+    target_date = Column(DateTime, nullable=True)
+    category = Column(String, default="general")
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow)
+
+    owner = relationship("User", back_populates="savings_goals")
 
 
 class Currency(Base):

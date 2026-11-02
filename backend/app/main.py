@@ -5,7 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.db import Base, engine, init_db
 from app.models import Category, Currency
-from app.routers import ai, auth, budgets, categories, currencies, expenses, export, income, incomes, recurring, reports
+from app.routers import ai, auth, budgets, categories, currencies, dashboard, expenses, export, goals, income, incomes, recurring, reports
 
 DEFAULT_CATEGORIES = [
     ("Food", "expense"),
@@ -59,7 +59,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+app.include_router(goals.router)
 app.include_router(auth.router)
+app.include_router(dashboard.router)
 app.include_router(ai.router)
 app.include_router(categories.router)
 app.include_router(expenses.router)

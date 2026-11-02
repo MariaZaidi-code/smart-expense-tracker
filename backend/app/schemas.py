@@ -195,3 +195,79 @@ class CurrencyOut(BaseModel):
     code: str
     rate: float
     updated_at: datetime
+
+
+class GoalCreate(BaseModel):
+    name: str
+    description: Optional[str] = None
+    target_amount: float = Field(gt=0)
+    saved_amount: float = Field(ge=0, default=0.0)
+    target_date: Optional[datetime] = None
+    category: str = "general"
+
+
+class GoalUpdate(BaseModel):
+    name: Optional[str] = None
+    description: Optional[str] = None
+    target_amount: Optional[float] = Field(default=None, gt=0)
+    saved_amount: Optional[float] = Field(default=None, ge=0)
+    target_date: Optional[datetime] = None
+    category: Optional[str] = None
+
+
+class GoalOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: int
+    name: str
+    description: Optional[str] = None
+    target_amount: float
+    saved_amount: float
+    target_date: Optional[datetime] = None
+    category: str
+    created_at: datetime
+
+    @property
+    def progress_percent(self) -> float:
+        return round(self.saved_amount / self.target_amount * 100, 1) if self.target_amount else 0.0
+
+    @property
+    def remaining(self) -> float:
+        return max(self.target_amount - self.saved_amount, 0.0)
+
+
+class GoalCreate(BaseModel):
+    name: str
+    description: Optional[str] = None
+    target_amount: float = Field(gt=0)
+    saved_amount: float = Field(ge=0, default=0.0)
+    target_date: Optional[datetime] = None
+    category: str = "general"
+
+
+class GoalUpdate(BaseModel):
+    name: Optional[str] = None
+    description: Optional[str] = None
+    target_amount: Optional[float] = Field(default=None, gt=0)
+    saved_amount: Optional[float] = Field(default=None, ge=0)
+    target_date: Optional[datetime] = None
+    category: Optional[str] = None
+
+
+class GoalOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: int
+    name: str
+    description: Optional[str] = None
+    target_amount: float
+    saved_amount: float
+    target_date: Optional[datetime] = None
+    category: str
+    created_at: datetime
+
+    @property
+    def progress_percent(self) -> float:
+        return round(self.saved_amount / self.target_amount * 100, 1) if self.target_amount else 0.0
+
+    @property
+    def remaining(self) -> float:
+        return max(self.target_amount - self.saved_amount, 0.0)

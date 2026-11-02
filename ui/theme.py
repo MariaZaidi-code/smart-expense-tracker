@@ -242,8 +242,8 @@ def inject_theme() -> None:
         [data-testid="stDateInput"] input,
         textarea {{
             color: var(--text-main) !important;
-            background: var(--card) !important;
-            border-color: var(--border) !important;
+            background: #1A233A !important;
+            border: 1px solid var(--primary) !important;
             border-radius: .75rem !important;
         }}
 

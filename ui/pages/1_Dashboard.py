@@ -116,9 +116,12 @@ with ct:
         st.info("No recent transactions.")
 with ca:
     st.subheader("Quick Actions")
-    st.button("Add Expense", use_container_width=True)
-    st.button("Add Budget", use_container_width=True)
-    st.button("Add Goal", use_container_width=True)
+    if st.button("Add Expense", use_container_width=True):
+        st.switch_page("pages/2_Transactions.py")
+    if st.button("Add Budget", use_container_width=True):
+        st.switch_page("pages/3_Budgets.py")
+    if st.button("Add Goal", use_container_width=True):
+        st.switch_page("pages/8_Goals.py")
     st.markdown("---")
     st.subheader("Budget Status")
     if summary["total_budget"]:

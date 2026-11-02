@@ -1,0 +1,10 @@
+{
+  "description": "Manage personal expenses, budgets, savings goals, and recurring bills with spending insights, forecasts, and an AI finance assistant.",
+  "robots": {
+    "index": false
+  },
+  "accessibility": {
+    "addBypassLinks": false,
+    "ignoreReducedMotion": false
+  }
+}

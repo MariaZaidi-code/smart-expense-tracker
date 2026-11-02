@@ -52,21 +52,25 @@ See `docs/ASSIGNMENT_2_CHECKLIST.md` for the full mapping and
 
 ```powershell
 cd C:\Users\Go\smart-expense-tracker
+
+# 1) Backend (FastAPI) — serves data and auth
+cd backend
 python -m pip install -r requirements.txt
+uvicorn app.main:app --reload --port 8000
 
-# 1) Add your Grok key (or set GROK_API_KEY)
-notepad grok_api_key.txt      # paste: xai-...
-# get a key at https://console.x.ai
-
-# 2) Seed synthetic demo data (safe to re-run)
-python database/seed.py --reset
-
-# 3) Build the RAG index (optional: the app auto-builds it on first use)
-python build_index.py
-
-# 4) Run the Streamlit app
-streamlit run ui/app.py
+# 2) Frontend (React + Vite) — in a second terminal
+cd ..\frontend
+npm install
+npm run dev
 ```
+
+Open the frontend URL printed by Vite (default http://localhost:8443). The
+frontend proxies `/api` and `/expenses` etc. to the backend on port 8000.
+
+### Key configuration
+
+The backend reads settings from environment variables (see `backend/app/config.py`).
+The frontend is Grok-free and talks to the FastAPI backend only.
 
 If the key file is missing or the LLM is unreachable, the app still works with a
 deterministic rule-based agent and clearly labels the mode in the AI Assistant.
@@ -147,17 +151,17 @@ implements it is in [`docs/FEATURE_RESEARCH.md`](docs/FEATURE_RESEARCH.md).
 ## Project structure
 
 ```
-agent/              Grok LLM client, prompts, memory, tool runner, agent loop
+frontend/           React + Vite + Tailwind UI (downloaded Figma design, white + blue)
+backend/            FastAPI backend (auth, expenses, budgets, reports, AI)
+agent/              Grok LLM client, prompts, memory, tool runner, agent loop (Streamlit-era, kept)
 rag/                loader, chunker, embeddings, Chroma/JSON vector store, retriever
-rag/documents/      6 financial-guidance documents
 mcp_server/         FastMCP server (26 tools) and tool business logic
 mcp_client/         standalone MCP client demo
-ui/                 Streamlit app and pages (Rameen's UI + Smart Insights/Goals)
 database/           SQLite schema, connection helpers, six-month seed data
 expense/            transactions, budgets, analytics, insights, goals, merchant rules
-tests/              data-layer, insights/goals, RAG/MCP, memory, agent, optional LLM tests
+auth.py             lightweight user authentication
+tests/              data-layer, insights/goals, RAG/MCP, memory, agent tests
 docs/               architecture, checklist, prompt rationale, demo, feature research
-backend/            FastAPI backend (legacy, optional)
 ```
 
 ## Branch history

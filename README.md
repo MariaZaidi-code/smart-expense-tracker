@@ -29,11 +29,13 @@ pip install -r requirements.txt
 uvicorn app.main:app --reload
 ```
 
-### Frontend
+### Streamlit UI (Rameen)
 ```bash
-cd frontend
-npm install
-npm run dev
+python -m venv .venv
+.venv\Scripts\activate
+pip install -r requirements.txt
+python database/seed.py --reset
+streamlit run ui/app.py
 ```
 
 ## API

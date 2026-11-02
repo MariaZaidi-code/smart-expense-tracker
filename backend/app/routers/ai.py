@@ -61,13 +61,13 @@ def insights_endpoint(db: Session = Depends(get_db), current_user: User = Depend
 @router.post("/anomalies")
 def anomalies_endpoint(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     rows = db.query(Expense).filter(Expense.user_id == current_user.id).all()
-    # attach category name attribute for detection
+    # attach category name attribute for detection (avoid clobbering the ORM relationship)
     for e in rows:
         if e.category_id:
             c = db.query(Category).filter(Category.id == e.category_id).first()
-            e.category = c.name if c else None
+            e.category_name = c.name if c else None
         else:
-            e.category = None
+            e.category_name = None
     result = detect_anomalies(rows)
     return {"anomalies": [_expense_to_dict(e, db) for e in result]}
 
